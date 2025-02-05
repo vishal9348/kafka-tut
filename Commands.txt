@@ -1,0 +1,67 @@
+1. Download kafka
+2. start zookeeper and kafka serve using below commands
+	Zookeeper - bin\windows\zookeeper-serve-serve.bat config\zookeeper.properties
+	kafka - bin\windows\kafka-server-start.bat config\server.properties
+
+3. Create Topics -
+	bin\windows\kafka-topics.sh --create --topic quickstart-events --bootstrap-server localhost:9092
+
+4. Create Producer -
+	bin\windows\kafka-topics.sh --describe --topic quickstart-events --bootstrap-server localhost:9092
+
+5. Produce messages -
+	bin\windows\kafka-console-producer.sh --topic quickstart-events --bootstrap-server localhost:9092
+
+6. Create Consumer -
+		bin\windows\kafka-console-consumer.sh --topic quickstart-events --from-beginning --bootstrap-server localhost:9092
+
+---------------------------------------------------------------------------------------------------------------------------
+
+using spring boot
+
+in configuration file -  add below configuration
+
+Producer Configuration --
+
+spring.kafka.producer.bootstrap-servers=localhost:9092
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer
+
+consumer configuration --
+
+spring.kafka.consumer.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=group-1
+spring.kafka.consumer.auto-offset-reset=earliest
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+
+
+1. Create a topic using below method
+
+    @Bean
+    public NewTopic topic() {
+        return TopicBuilder
+                .name(KafkaConstant.LOCATION_UPDATE_TOPIC) // give topic name
+                .build();
+    }
+
+2. produce message in kafka like below example
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    public boolean updateLocation(String location) {
+        this.kafkaTemplate.send(KafkaConstant.LOCATION_UPDATE_TOPIC, location);
+        return true;
+    }
+
+    using KafkaTemplate we can send the message using send() method.
+
+3. Using below Annotation we can consume the message
+
+    @KafkaListener(topics = KafkaConstant.LOCATION_UPDATE_TOPIC, groupId = KafkaConstant.GROUP_ID)
+    public void updateLocation(String location) {
+        System.out.println("location update " +location);
+    }
+
+4. we can create controller to produce message
